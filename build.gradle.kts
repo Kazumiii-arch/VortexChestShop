@@ -11,15 +11,17 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") } // Spigot snapshots
-    maven { url = uri("https://oss.sonatype.org/content/groups/public/") } // Sonatype (Vault, etc.)
-    maven { url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/") } // PlaceholderAPI
-    maven { url = uri("https://repo.dmulloy2.net/repository/public/") } // ProtocolLib, and some HD versions
-    maven { url = uri("https://jitpack.io") } // Keep JitPack in case it's needed for other dependencies
-    maven { url = uri("https://repo.papermc.io/repository/maven-public/") } // PaperMC
-
-    // ADDED: SpigotMC releases repository - often hosts plugins like HolographicDisplays
+    maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
+    maven { url = uri("https://oss.sonatype.org/content/groups/public/") }
+    maven { url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/") }
+    maven { url = uri("https://repo.dmulloy2.net/repository/public/") }
+    maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
     maven { url = uri("https://repo.spigotmc.org/releases/") }
+
+    // ADDED: Repository for DecentHolograms
+    maven { url = uri("https://repo.decentholograms.com/snapshots") } // For snapshots, if needed
+    maven { url = uri("https://repo.decentholograms.com/releases") }  // For stable releases
 }
 
 dependencies {
@@ -29,8 +31,9 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.2")
     compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
 
-    // CHANGED: HolographicDisplays to a commonly available version on SpigotMC releases repo
-    compileOnly("com.sainttx.holograms:Holograms:2.5.11") // This version is often more reliably found
+    // CHANGED: Replaced HolographicDisplays with DecentHolograms
+    compileOnly("eu.decentsoftware.holograms:decentholograms:2.8.6") // Using a recent stable version.
+                                                                    // Check DecentHolograms' GitHub for latest.
 
     compileOnly("org.projectlombok:lombok:1.18.28")
     annotationProcessor("org.projectlombok:lombok:1.18.28")
@@ -49,6 +52,8 @@ tasks {
         archiveClassifier.set("")
         archiveVersion.set(project.version.toString())
         relocate("com.comphenix.protocol", "com.vortex.vortexchestshop.libs.protocollib")
+        // If DecentHolograms has shaded dependencies that conflict, you might need to relocate them too.
+        // Example: relocate("some.conflicting.package", "com.vortex.vortexchestshop.libs.decentholograms.some.conflicting.package")
     }
 
     build {
