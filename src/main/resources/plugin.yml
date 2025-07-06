@@ -1,0 +1,113 @@
+# plugin.yml
+
+# The name of your plugin
+name: VortexChestShop
+# The version of your plugin
+version: 1.0.0
+# The main class of your plugin, which extends JavaPlugin
+main: com.vortex.vortexchestshop.VortexChestShop
+# The author(s) of the plugin
+author: Vortex
+# A brief description of your plugin
+description: A premium player chest shop system with floating item displays.
+# The minimum API version your plugin is compatible with.
+# Use 1.13 for 1.13+, 1.14 for 1.14+, etc. For 1.15+, 1.16 is a good safe bet.
+api-version: 1.16
+
+# Soft dependencies - the plugin will still load if these are not present,
+# but certain features might be disabled.
+softdepend:
+  - Vault
+  - PlaceholderAPI
+  - ProtocolLib
+  - HolographicDisplays
+  - ItemsAdder # For custom item support
+  - Oraxen # For custom item support
+
+# Commands provided by your plugin
+commands:
+  vortexchestshop:
+    description: Main command for VortexChestShop.
+    usage: /<command>
+    aliases: [vcs, chestshop]
+    permission: vortexchestshop.command.use
+    permission-message: You do not have permission to use this command.
+  shop:
+    description: Player shop commands.
+    usage: /<command>
+    aliases: [myshop]
+    permission: vortexchestshop.player.use
+    permission-message: You do not have permission to use player shop commands.
+
+# Permissions for your plugin
+permissions:
+  vortexchestshop.*:
+    description: Grants all VortexChestShop permissions.
+    default: op
+    children:
+      vortexchestshop.command.*: true
+      vortexchestshop.admin.*: true
+      vortexchestshop.player.*: true
+      vortexchestshop.premium.*: true
+
+  # Command Permissions
+  vortexchestshop.command.use:
+    description: Allows use of the main /vortexchestshop command.
+    default: true
+  vortexchestshop.admin.setdisplay:
+    description: Allows toggling floating item display for players.
+    default: op
+  vortexchestshop.admin.grantslot:
+    description: Allows granting additional shop slots.
+    default: op
+  vortexchestshop.admin.unlockarea:
+    description: Allows unlocking premium market access.
+    default: op
+  vortexchestshop.admin.reload:
+    description: Allows reloading the plugin configuration.
+    default: op
+
+  # Player Permissions
+  vortexchestshop.player.use:
+    description: Allows players to create and manage basic chest shops.
+    default: true
+  vortexchestshop.player.createshop:
+    description: Allows players to create new chest shops.
+    default: true
+  vortexchestshop.player.maxshops.f2p.<amount>:
+    description: Sets the maximum number of F2P shops a player can have.
+    default: false # This is a placeholder, will be handled by LuckPerms/internal logic
+
+  # Premium Permissions
+  vortexchestshop.premium.slots.<amount>:
+    description: Grants a specific number of premium shop slots.
+    default: false # This is a placeholder, will be handled by LuckPerms/internal logic
+  vortexchestshop.premium.tax.reduced:
+    description: Grants reduced transaction tax.
+    default: false
+  vortexchestshop.premium.advertise:
+    description: Allows broadcasting shop advertisements.
+    default: false
+  vortexchestshop.premium.marketaccess:
+    description: Grants access to exclusive premium market areas.
+    default: false
+  vortexchestshop.premium.cosmetics.*:
+    description: Grants access to all premium shop cosmetics.
+    default: false
+    children:
+      vortexchestshop.premium.cosmetics.chestskin: true
+      vortexchestshop.premium.cosmetics.textstyle: true
+      vortexchestshop.premium.cosmetics.particles: true
+  vortexchestshop.premium.visuals.enhancedrotation:
+    description: Grants enhanced floating item rotation speed.
+    default: false
+  vortexchestshop.premium.visuals.particles:
+    description: Grants subtle particle effects.
+    default: false
+  vortexchestshop.premium.visuals.glowingoutline:
+    description: Grants glowing item outline.
+    default: false
+  vortexchestshop.premium.visuals.longrange:
+    description: Grants long-range visibility of floating items.
+    default: false
+    
