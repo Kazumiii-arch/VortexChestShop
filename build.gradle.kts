@@ -16,9 +16,11 @@ repositories {
     // The repository needed to download the Spigot API
     maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") } // SpigotMC repository for Spigot API
     maven { url = uri("https://oss.sonatype.org/content/groups/public/") } // Sonatype for various dependencies (e.g., Vault)
-    maven { url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/") } // PlaceholderAPI repository
-    maven { url = uri("https://repo.dmulloy2.net/repository/public/") } // ProtocolLib repository
-    maven { url = uri("https://jitpack.io") } // For certain libraries that might be on JitPack (e.g., custom APIs)
+    // Repository for PlaceholderAPI
+    maven { url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/") }
+    // Repository for ProtocolLib and HolographicDisplays (sainttx)
+    maven { url = uri("https://repo.dmulloy2.net/repository/public/") }
+    maven { url = uri("https://jitpack.io") } // Keep JitPack in case other future dependencies use it, though HD was moved
     maven { url = uri("https://repo.papermc.io/repository/maven-public/") } // PaperMC repository for Paper API (if using Paper API)
 }
 
@@ -26,9 +28,7 @@ dependencies {
     // Spigot API for Minecraft 1.20.1.
     // 'compileOnly' means it's needed for compiling but won't be included in the
     // final JAR, as the server provides it at runtime.
-    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") // Updated to 1.20.1 as per your example
-    // For PaperMC, you might use:
-    // compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") // Target Minecraft 1.20.1
 
     // Vault API - for economy integration (soft dependency)
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
@@ -40,9 +40,10 @@ dependencies {
     compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0") // Check for the latest compatible version
 
     // HolographicDisplays - for floating text (soft dependency)
-    // Note: The artifact ID might vary slightly depending on the specific fork/version.
-    // The one below is common for the modern HolographicDisplays.
-    compileOnly("com.github.Decathlon-2.0:HolographicDisplays:3.0.0") // Check for the latest compatible version or alternative
+    // Changed to the standard sainttx artifact, which is publicly available on repo.dmulloy2.net
+    compileOnly("com.sainttx.holograms:Holograms:2.6.1") // Using a stable 2.x version.
+    // If you specifically need HolographicDisplays 3.x features that are not in 2.x,
+    // you might need to find a different public repository or manually add the JAR.
 
     // Lombok - useful for reducing boilerplate code (optional, but common)
     compileOnly("org.projectlombok:lombok:1.18.28")
