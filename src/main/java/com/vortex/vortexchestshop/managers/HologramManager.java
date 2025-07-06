@@ -6,13 +6,13 @@ import com.vortex.vortexchestshop.VortexChestShop;
 import com.vortex.vortexchestshop.models.ChestShop;
 import com.vortex.vortexchestshop.utils.Logger;
 import me.clip.placeholderapi.PlaceholderAPI; // PlaceholderAPI import
-import com.sainttx.holograms.api.Hologram; // HolographicDisplays API Hologram class
-import com.sainttx.holograms.api.HologramManager; // HolographicDisplays API Manager class
-import com.sainttx.holograms.api.line.TextLine; // HolographicDisplays API TextLine class
+import eu.decentsoftware.holograms.api.DHAPI; // DecentHolograms API main class
+import eu.decentsoftware.holograms.api.holograms.Hologram; // DecentHolograms Hologram class
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.ChatColor; // Still useful for translating config messages if needed elsewhere
 import org.bukkit.Location;
-import org.bukkit.inventory.meta.ItemMeta; // For getItemDisplayName
+import org.bukkit.inventory.ItemStack; // Added for getItemDisplayName
+import org.bukkit.inventory.meta.ItemMeta; // Added for getItemDisplayName
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,32 +25,32 @@ public class HologramManager {
     private final VortexChestShop plugin;
     // Map to store active holograms, keyed by shop UUID
     private final Map<UUID, Hologram> activeHolograms;
-    // HolographicDisplays API Manager instance
-    private HologramManager hdManager;
+    // Flag to indicate if DecentHolograms is available
+    private boolean decentHologramsAvailable = false;
 
     public HologramManager(VortexChestShop plugin) {
         this.plugin = plugin;
-        this.activeHolograms = new ConcurrentHashMap<>(); // Use ConcurrentHashMap for thread safety
+        this.activeHolograms = new ConcurrentHashMap<>();
 
-        // Attempt to hook into HolographicDisplays
-        if (Bukkit.getPluginManager().getPlugin("HolographicDisplays") != null &&
-            Bukkit.getPluginManager().getPlugin("HolographicDisplays").isEnabled() && // Ensure it's enabled
-            Bukkit.getPluginManager().getPlugin("HolographicDisplays") instanceof com.sainttx.holograms.HologramPlugin) {
-            this.hdManager = ((com.sainttx.holograms.HologramPlugin) Bukkit.getPluginManager().getPlugin("HolographicDisplays")).getHologramManager();
-            Logger.info("HolographicDisplays hook successful.");
+        // Attempt to hook into DecentHolograms
+        if (Bukkit.getPluginManager().getPlugin("DecentHolograms") != null &&
+            Bukkit.getPluginManager().getPlugin("DecentHolograms").isEnabled()) {
+            this.decentHologramsAvailable = true;
+            Logger.info("DecentHolograms hook successful.");
         } else {
-            Logger.warning("HolographicDisplays not found or not loaded correctly. Holograms will not be displayed.");
-            this.hdManager = null; // Explicitly set to null if not available
+            Logger.warning("DecentHolograms not found or not enabled. Holograms will not be displayed.");
+            this.decentHologramsAvailable = false;
         }
     }
 
     /**
-     * Creates a hologram for a given ChestShop.
+     * Creates a hologram for a given ChestShop using DecentHolograms API.
      * @param shop The ChestShop to create a hologram for.
      */
     public void createHologram(ChestShop shop) {
-        // Do not create if HolographicDisplays is not available or holograms are disabled in config
-        if (hdManager == null || !plugin.getConfig().getBoolean("hologram-text.enabled", true)) {
+        // Do not create if DecentHolograms is not available, holograms are disabled in config,
+        // or if the shop has no stock (unless you want to show "Out of Stock" hologram).
+        if (!decentHologramsAvailable || !plugin.getConfig().getBoolean("hologram-text.enabled", true) || shop.getCurrentStock() <= 0) {
             return;
         }
         // If a hologram already exists for this shop, update it instead
@@ -64,25 +64,26 @@ public class HologramManager {
 
         List<String> lines = getHologramLines(shop);
 
-        // Create and spawn the hologram
-        Hologram hologram = new Hologram(hologramName, hologramLocation, false); // false for not persistent (plugin manages)
-        for (String line : lines) {
-            hologram.addLine(new TextLine(hologram, line));
-        }
-        hdManager.addHologram(hologram); // Add to HD manager
-        hologram.spawn(); // Spawn the hologram entity
+        try {
+            // Create and spawn the hologram using DHAPI
+            Hologram hologram = DHAPI.createHologram(hologramName, hologramLocation);
+            DHAPI.setHologramLines(hologram, lines); // Set all lines at once
 
-        activeHolograms.put(shop.getId(), hologram);
-        Logger.debug("Created hologram for shop " + shop.getId() + " at " + hologramLocation.toString());
+            activeHolograms.put(shop.getId(), hologram);
+            Logger.debug("Created hologram for shop " + shop.getId() + " at " + hologramLocation.toString());
+        } catch (Exception e) {
+            Logger.severe("Failed to create hologram for shop " + shop.getId() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
-     * Updates an existing hologram for a given ChestShop.
+     * Updates an existing hologram for a given ChestShop using DecentHolograms API.
      * @param shop The ChestShop to update.
      */
     public void updateHologram(ChestShop shop) {
-        // If HolographicDisplays is not available or holograms are disabled, ensure it's removed
-        if (hdManager == null || !plugin.getConfig().getBoolean("hologram-text.enabled", true) || shop.getCurrentStock() <= 0) {
+        // If DecentHolograms is not available, holograms are disabled, or stock is zero, ensure it's removed
+        if (!decentHologramsAvailable || !plugin.getConfig().getBoolean("hologram-text.enabled", true) || shop.getCurrentStock() <= 0) {
             removeHologram(shop);
             return;
         }
@@ -94,54 +95,48 @@ public class HologramManager {
         }
 
         List<String> newLines = getHologramLines(shop);
-
-        // Update existing lines or add/remove as needed
-        // Iterate up to the maximum number of lines between old and new
-        for (int i = 0; i < Math.max(hologram.getLines().size(), newLines.size()); i++) {
-            if (i < newLines.size() && i < hologram.getLines().size()) {
-                // Update existing line if text has changed
-                TextLine textLine = (TextLine) hologram.getLine(i);
-                if (!textLine.getText().equals(newLines.get(i))) {
-                    textLine.setText(newLines.get(i));
-                }
-            } else if (i < newLines.size()) {
-                // Add new line if there are more new lines than old
-                hologram.addLine(new TextLine(hologram, newLines.get(i)));
-            } else {
-                // Remove excess line if there are fewer new lines than old
-                hologram.removeLine(hologram.getLine(i));
-            }
+        try {
+            DHAPI.setHologramLines(hologram, newLines); // Update all lines at once
+            Logger.debug("Updated hologram for shop " + shop.getId());
+        } catch (Exception e) {
+            Logger.severe("Failed to update hologram for shop " + shop.getId() + ": " + e.getMessage());
+            e.printStackTrace();
         }
-        hologram.update(); // Update the hologram for players
-
-        Logger.debug("Updated hologram for shop " + shop.getId());
     }
 
     /**
-     * Removes a hologram for a given ChestShop.
+     * Removes a hologram for a given ChestShop using DecentHolograms API.
      * @param shop The ChestShop to remove the hologram for.
      */
     public void removeHologram(ChestShop shop) {
-        if (hdManager == null) return; // Cannot remove if HD is not available
+        if (!decentHologramsAvailable) return; // Cannot remove if DH is not available
 
         Hologram hologram = activeHolograms.remove(shop.getId());
         if (hologram != null) {
-            hologram.despawn(); // Despawn the hologram entity
-            hdManager.removeHologram(hologram); // Remove from HolographicDisplays manager
-            Logger.debug("Removed hologram for shop " + shop.getId());
+            try {
+                DHAPI.removeHologram(hologram.getName()); // Remove by name
+                Logger.debug("Removed hologram for shop " + shop.getId());
+            } catch (Exception e) {
+                Logger.severe("Failed to remove hologram " + hologram.getName() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
     /**
-     * Cleans up all active holograms managed by this plugin.
+     * Cleans up all active holograms managed by this plugin using DecentHolograms API.
      * Called on plugin disable to prevent lingering holograms.
      */
     public void cleanupAllHolograms() {
-        if (hdManager == null) return; // Cannot clean up if HD is not available
+        if (!decentHologramsAvailable) return;
         for (Hologram hologram : activeHolograms.values()) {
             if (hologram != null) {
-                hologram.despawn();
-                hdManager.removeHologram(hologram);
+                try {
+                    DHAPI.removeHologram(hologram.getName());
+                } catch (Exception e) {
+                    Logger.severe("Failed to cleanup hologram " + hologram.getName() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
         activeHolograms.clear();
@@ -158,11 +153,9 @@ public class HologramManager {
         String itemNameFormat = plugin.getConfig().getString("hologram-text.item-name-format", "&b%item_display_name%");
         String priceFormat = plugin.getConfig().getString("hologram-text.price-format", "&aPrice: &e$%price% each");
 
-        // Get the display name of the item
         String itemDisplayName = getItemDisplayName(shop.getSoldItem());
         String itemNameLine = itemNameFormat.replace("%item_display_name%", itemDisplayName);
 
-        // Format price with commas (e.g., 5000 -> 5,000.00)
         String formattedPrice = String.format("%,.2f", shop.getPrice());
         String priceLine = priceFormat.replace("%price%", formattedPrice);
 
@@ -172,13 +165,14 @@ public class HologramManager {
             priceLine = PlaceholderAPI.setPlaceholders(shop.getOwnerPlayer(), priceLine);
         }
 
-        // Translate color codes and add to list
-        lines.add(ChatColor.translateAlternateColorCodes('&', itemNameLine));
-        lines.add(ChatColor.translateAlternateColorCodes('&', priceLine));
+        // DecentHolograms automatically handles Bukkit color codes, so no need for ChatColor.translateAlternateColorCodes here
+        // if you configure your messages in config.yml with '&' codes.
+        lines.add(itemNameLine);
+        lines.add(priceLine);
 
-        // You can add more lines here, e.g., stock count
+        // Example for showing stock, if enabled in config
         // if (plugin.getConfig().getBoolean("hologram-text.show-stock", false)) {
-        //     lines.add(ChatColor.translateAlternateColorCodes('&', "&7Stock: &f" + shop.getCurrentStock()));
+        //     lines.add("&7Stock: &f" + shop.getCurrentStock());
         // }
 
         return lines;
@@ -205,8 +199,6 @@ public class HologramManager {
         if (meta != null && meta.hasDisplayName()) {
             return meta.getDisplayName();
         }
-        // Fallback to a user-friendly name if no custom display name
         return item.getType().name().replace("_", " ").toLowerCase();
     }
-          }
-              
+}
