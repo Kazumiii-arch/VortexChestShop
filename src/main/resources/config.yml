@@ -1,0 +1,117 @@
+# config.yml
+
+# VortexChestShop Configuration
+
+# Core Shop Settings
+shop-settings:
+  # Default maximum shops for Free-to-Play players
+  f2p-max-shops: 5
+  # Default transaction tax for F2P players (e.g., 0.05 for 5%)
+  f2p-transaction-tax: 0.05
+  # Reduced transaction tax for Premium players (e.g., 0.02 for 2%)
+  premium-transaction-tax: 0.02
+  # Whether to enable floating item display by default for new shops
+  default-floating-display-enabled: true
+  # Interval in ticks for updating floating item displays (20 ticks = 1 second)
+  display-update-interval: 20
+
+# Floating Item Display Settings
+floating-display:
+  # Base rotation speed for floating items (e.g., 0.05 for normal)
+  base-rotation-speed: 0.05
+  # Enhanced rotation speed for premium shops (e.g., 0.1 for faster)
+  premium-rotation-speed: 0.1
+  # Enable subtle particle effects for premium shops
+  premium-particles-enabled: true
+  # Type of particle for premium shops (e.g., SPARKLE, GLOW_SQUID_INK)
+  premium-particle-type: SPARKLE
+  # Amount of particles to spawn per update
+  premium-particle-amount: 5
+  # Enable glowing item outline for premium shops (requires ProtocolLib and compatible server version)
+  premium-glowing-outline-enabled: true
+  # Enable long-range visibility for floating items (requires ProtocolLib)
+  premium-long-range-visibility: true
+  # Distance in blocks for long-range visibility
+  long-range-distance: 64
+
+# Hologram Text Settings
+hologram-text:
+  # Enable hologram text below floating item
+  enabled: true
+  # Format for the item name line (PlaceholderAPI supported)
+  item-name-format: "&b%item_display_name%"
+  # Format for the price line (PlaceholderAPI supported)
+  price-format: "&aPrice: &e$%price% each"
+  # Offset from the chest top for the hologram (Y-axis)
+  y-offset: 0.5 # Adjust as needed for proper alignment
+
+# Messages Configuration
+messages:
+  prefix: "&8[&6VortexChestShop&8] &r"
+  no-permission: "&cYou do not have permission to do that."
+  shop-created: "&aYour chest shop has been created!"
+  shop-removed: "&cYour chest shop has been removed."
+  shop-limit-reached: "&cYou have reached your maximum shop limit of &e%limit%&c shops."
+  item-changed: "&aShop item updated to: &b%item_name%"
+  stock-updated: "&aShop stock updated. Current stock: &e%stock%"
+  shop-inactive: "&cThis shop is currently inactive or empty."
+  admin-display-toggle-on: "&aFloating display for &e%player%&a has been enabled."
+  admin-display-toggle-off: "&cFloating display for &e%player%&c has been disabled."
+  admin-slots-granted: "&aGranted &e%amount%&a shop slots to &e%player%&a."
+  admin-market-unlocked: "&aUnlocked premium market access for &e%player%&a in zone &b%zone%&a."
+  error-player-not-found: "&cPlayer &e%player%&c not found."
+  error-invalid-amount: "&cInvalid amount specified."
+  error-invalid-zone: "&cInvalid market zone specified."
+  error-shop-not-found: "&cNo shop found at this location."
+  error-not-a-chest: "&cYou must click on a chest to create a shop."
+  error-shop-exists: "&cThere is already a shop at this location."
+  error-not-your-shop: "&cThis is not your shop."
+  shop-advertisement-broadcast: "&6[Shop Ad] &e%player%'s shop at %location% is selling &b%item_name% &afor &e$%price%!"
+
+# Seasonal Effects (Optional)
+seasonal-effects:
+  halloween:
+    enabled: false
+    start-date: "2025-10-20" # YYYY-MM-DD
+    end-date: "2025-11-05"
+    particle-type: FLAME # Example particle for Halloween
+  christmas:
+    enabled: false
+    start-date: "2025-12-15"
+    end-date: "2026-01-05"
+    particle-type: SNOWFLAKE # Example particle for Christmas
+
+# Progression Settings
+progression:
+  playtime-milestones:
+    - time: 3600 # 1 hour in seconds
+      slots: 1
+      message: "&aYou earned an extra shop slot for 1 hour of playtime!"
+    - time: 10800 # 3 hours in seconds
+      slots: 1
+      message: "&aYou earned an extra shop slot for 3 hours of playtime!"
+  voting-rewards:
+    # Amount of slots to grant per vote (requires VotingPlugin hook)
+    slots-per-vote: 1
+    # Max slots earnable via voting
+    max-vote-slots: 5
+  quest-rewards:
+    # Placeholder for quest integration (e.g., specific quest IDs grant slots)
+    # This would typically be handled by a Quest plugin hook
+    enabled: false
+  in-game-currency-slots:
+    enabled: true
+    # Cost per slot
+    cost: 10000
+    # Max slots purchasable with in-game currency
+    max-purchasable-slots: 3
+    message: "&aYou purchased an extra shop slot for &e$%cost%&a!"
+
+# Performance Settings
+performance:
+  # How often to update the position/rotation of floating items (in ticks)
+  # Lower values mean smoother animation but higher CPU usage
+  floating-item-tick-rate: 1
+  # How often to check for stock/item changes (in ticks)
+  stock-check-rate: 40 # Every 2 seconds
+
